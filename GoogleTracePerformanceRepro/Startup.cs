@@ -35,18 +35,23 @@ namespace GoogleTracePerformanceRepro
             {
                 Console.WriteLine("adding google trace!");
                 services.AddGoogleTrace(
-                    options => {
+                    options =>
+                    {
                         options.ProjectId = Configuration["Google:ProjectId"];
-                        options.Options = TraceOptions.Create(bufferOptions: BufferOptions.NoBuffer());
+                        options.Options = TraceOptions.Create(
+                            bufferOptions: BufferOptions.TimedBuffer(TimeSpan.FromSeconds(5.5)),
+                            qpsSampleRate: 1D,
+                            retryOptions: RetryOptions.NoRetry(ExceptionHandling.Ignore)
+                        );
                         options.TraceFallbackPredicate = TraceDecisionPredicate.Create(request =>
                         {
                             // Do not trace OPTIONS 
                             var isOptionsCall = request.Method.ToLowerInvariant().Equals("options");
-                        
+
                             // Do not trace our monitoring routes
                             var isMonitoringRoute =
                                 request.Path.Equals(PathString.FromUriComponent("/"));
-                        
+
                             return !(isOptionsCall || isMonitoringRoute);
                         });
                     });
@@ -68,7 +73,7 @@ namespace GoogleTracePerformanceRepro
                 Console.WriteLine("using google trace");
                 app.UseGoogleTrace();
             }
-            
+
             app.UseRouting();
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }

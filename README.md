@@ -5,6 +5,14 @@ This is a small dotnet 5.0 WebApi with Google Trace, created with the purpose of
 It relates to the Google Trace `fallback predicate`, issue is tracked here on GitHub:
 https://github.com/googleapis/google-cloud-dotnet/issues/5966
 
+# FIXED
+
+The trace team explained the problem. When having many requests one should
+1. Enable buffering in the Google Trace provider
+1. Tweak the QPS settings to not trace all calls going in
+
+Last commit fixes this making this reproduction run just as fast with and without google trace enabled.
+
 ## How to use
 
 1. Dump a google service account with `trace writer` permissions in the root of the project with name `google-creds.json`
